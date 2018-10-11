@@ -15,6 +15,7 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 from torchvision import models, transforms
+import pretrainedmodels
 
 from grad_cam import (BackPropagation, Deconvolution, GradCAM,
                       GuidedBackPropagation)
@@ -38,6 +39,7 @@ def save_gradient(filename, data):
 
 
 def save_gradcam(filename, gcam, raw_image):
+    print(f'gcam shape: {gcam.shape}')
     h, w, _ = raw_image.shape
     gcam = cv2.resize(gcam, (w, h))
     gcam = cv2.applyColorMap(np.uint8(gcam * 255.0), cv2.COLORMAP_JET)
@@ -74,6 +76,10 @@ def main(image_path, arch, topk, cuda):
             'target_layer': 'features.denseblock4',
             'input_size': 224
         },
+	'resnet50': {
+	    'target_layer': 'layer4.2',
+	    'input_size': 224
+	}
         # Add your model
     }.get(arch)
 
@@ -94,7 +100,8 @@ def main(image_path, arch, topk, cuda):
             classes.append(line)
 
     # Model
-    model = models.__dict__[arch](pretrained=True)
+    #model = models.__dict__[arch](pretrained=True)
+    model = pretrainedmodels.__dict__[arch](num_classes=339, pretrained='moments')
 
     # Image
     raw_image = cv2.imread(image_path)[..., ::-1]

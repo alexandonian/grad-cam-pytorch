@@ -33,6 +33,9 @@ class _PropagationBase(object):
         self.preds = self.model(self.image)
         self.probs = F.softmax(self.preds, dim=1)[0]
         self.prob, self.idx = self.probs.data.sort(0, True)
+        print(f'preds: {self.preds.shape}')
+        print(f'probs: {self.probs.shape}')
+        print(f'idx: {self.idx.shape}')
         return self.prob, self.idx
 
     def backward(self, idx):
@@ -112,8 +115,12 @@ class GradCAM(_PropagationBase):
         fmaps = self._find(self.all_fmaps, target_layer)
         grads = self._find(self.all_grads, target_layer)
         weights = self._compute_grad_weights(grads)
+        print(f'fmaps: {fmaps.size()}')
+        print(f'grads: {grads.size()}')
+        print(f'weights: {weights.size()}')
 
         gcam = (fmaps[0] * weights[0].data).sum(dim=0)
+        print(f'gcam: {gcam.size()}')
         gcam = torch.clamp(gcam, min=0.)
 
         gcam -= gcam.min()
